@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EventCard from "../../components/EventCard";
 import Select from "../../components/Select";
 import { useData } from "../../contexts/DataContext";
@@ -11,66 +11,78 @@ const PER_PAGE = 9;
 
 const EventList = () => {
   const { data, error } = useData();
-  const [type, setType] = useState();
+  const [type, setType] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const filteredEvents = (
-    (!type
-      ? data?.events
-      : data?.events) || []
-  ).filter((event, index) => {
-    if (
-      (currentPage - 1) * PER_PAGE <= index &&
-      PER_PAGE * currentPage > index
-    ) {
-      return true;
-    }
-    return false;
-  });
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [pageNumber, setPageNumber] = useState(0);
+
+  useEffect(() => {
+    if (!data?.events) return;
+    const filteredEventsAll = data.events.filter(
+      (event) => !type || event.type === type
+    );
+    console.log("Filtered Events:", filteredEventsAll);
+
+    const paginatedEvents = filteredEventsAll.slice(
+      (currentPage - 1) * PER_PAGE,
+      currentPage * PER_PAGE
+    );
+    setFilteredEvents(paginatedEvents);
+    setPageNumber(Math.ceil(filteredEventsAll.length / PER_PAGE));
+  }, [data, type, currentPage]);
+
   const changeType = (evtType) => {
-    setCurrentPage(1);
-    setType(evtType);
+    console.log("Selected Type:", evtType);
+    setType(evtType || null);
+    setCurrentPage(1); // Reset to the first page when the type changes
   };
-  const pageNumber = Math.floor((filteredEvents?.length || 0) / PER_PAGE) + 1;
-  const typeList = new Set(data?.events.map((event) => event.type));
+
+  const typeList = data?.events
+    ? Array.from(new Set(data.events.map((event) => event.type)))
+    : [];
+
+  if (error) return <div>An error occurred</div>;
+  if (!data) return <div>Loading...</div>;
+
   return (
     <>
-      {error && <div>An error occured</div>}
-      {data === null ? (
-        "loading"
-      ) : (
-        <>
-          <h3 className="SelectTitle">Catégories</h3>
-          <Select
-            selection={Array.from(typeList)}
-            onChange={(value) => (value ? changeType(value) : changeType(null))}
-          />
-          <div id="events" className="ListContainer">
-            {filteredEvents.map((event) => (
-              <Modal key={event.id} Content={<ModalEvent event={event} />}>
-                {({ setIsOpened }) => (
-                  <EventCard
-                    onClick={() => setIsOpened(true)}
-                    imageSrc={event.cover}
-                    title={event.title}
-                    date={new Date(event.date)}
-                    label={event.type}
-                  />
-                )}
-              </Modal>
-            ))}
-          </div>
-          <div className="Pagination">
-            {[...Array(pageNumber || 0)].map((_, n) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <a key={n} href="#events" onClick={() => setCurrentPage(n + 1)}>
-                {n + 1}
-              </a>
-            ))}
-          </div>
-        </>
-      )}
+      <h3 className="SelectTitle">Catégories</h3>
+      <Select
+        selection={typeList}
+        onChange={(value) => changeType(value)}
+      />
+      <div id="events" className="ListContainer">
+        {filteredEvents.map((event) => (
+          <Modal key={event.id} Content={<ModalEvent event={event} />}>
+            {({ setIsOpened }) => (
+              <EventCard
+                onClick={() => setIsOpened(true)}
+                imageSrc={event.cover}
+                title={event.title}
+                date={new Date(event.date)}
+                label={event.type}
+              />
+            )}
+          </Modal>
+        ))}
+      </div>
+      <div className="Pagination">
+        {[...Array(pageNumber)].map((_, n) => (
+          <a
+            key={`page-${n}`} // Fixed the unique key warning
+            href="#events"
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage(n + 1);
+            }}
+          >
+            {n + 1}
+          </a>
+        ))}
+      </div>
     </>
   );
 };
 
 export default EventList;
+

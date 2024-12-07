@@ -16,6 +16,7 @@ const Form = ({ onSuccess, onError }) => {
       try {
         await mockContactApi();
         setSending(false);
+        onSuccess(); // Appel de la fonction onSuccess après la réussite
       } catch (err) {
         setSending(false);
         onError(err);
@@ -23,6 +24,7 @@ const Form = ({ onSuccess, onError }) => {
     },
     [onSuccess, onError]
   );
+
   return (
     <form onSubmit={sendContact}>
       <div className="row">
@@ -37,9 +39,10 @@ const Form = ({ onSuccess, onError }) => {
             titleEmpty
           />
           <Field placeholder="" label="Email" />
-          <Button type={BUTTON_TYPES.SUBMIT} disabled={sending}>
+          <Button type={BUTTON_TYPES.SUBMIT} disabled={sending} data-testid="button-test-id">
             {sending ? "En cours" : "Envoyer"}
           </Button>
+
         </div>
         <div className="col">
           <Field
@@ -64,3 +67,4 @@ Form.defaultProps = {
 }
 
 export default Form;
+

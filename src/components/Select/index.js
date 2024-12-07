@@ -16,15 +16,22 @@ const Select = ({
   const [value, setValue] = useState();
   const [collapsed, setCollapsed] = useState(true);
   const changeValue = (newValue) => {
-    onChange();
+    onChange(newValue); // Pass the correct value to the onChange callback
     setValue(newValue);
-    setCollapsed(newValue);
+    setCollapsed(true); // Collapse the dropdown after selection
   };
+
   return (
-    <div className={`SelectContainer ${type}`} data-testid="select-testid">
+    <div
+      className={`SelectContainer ${type}`}
+      data-testid="select-testid"
+      role="combobox"
+      aria-expanded={!collapsed} // Indicates if the dropdown is open
+      aria-controls="select-list" // Links to the list dropdown
+    >
       {label && <div className="label">{label}</div>}
       <div className="Select">
-        <ul>
+        <ul id="select-list">
           <li className={collapsed ? "SelectTitle--show" : "SelectTitle--hide"}>
             {value || (!titleEmpty && "Toutes")}
           </li>
@@ -32,7 +39,11 @@ const Select = ({
             <>
               {!titleEmpty && (
                 <li onClick={() => changeValue(null)}>
-                  <input defaultChecked={!value} name="selected" type="radio" />{" "}
+                  <input
+                    defaultChecked={!value}
+                    name="selected"
+                    type="radio"
+                  />{" "}
                   Toutes
                 </li>
               )}
@@ -56,7 +67,7 @@ const Select = ({
           className={collapsed ? "open" : "close"}
           onClick={(e) => {
             e.preventDefault();
-            setCollapsed(!collapsed);
+            setCollapsed(!collapsed); // Toggle dropdown visibility
           }}
         >
           <Arrow />
@@ -88,7 +99,7 @@ Select.propTypes = {
   titleEmpty: PropTypes.bool,
   label: PropTypes.string,
   type: PropTypes.string,
-}
+};
 
 Select.defaultProps = {
   onChange: () => null,
@@ -96,6 +107,7 @@ Select.defaultProps = {
   label: "",
   type: "normal",
   name: "select",
-}
+};
 
 export default Select;
+
