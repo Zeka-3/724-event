@@ -1,10 +1,10 @@
+
 import { useState, useEffect } from "react";
 import EventCard from "../../components/EventCard";
 import Select from "../../components/Select";
 import { useData } from "../../contexts/DataContext";
 import Modal from "../Modal";
 import ModalEvent from "../ModalEvent";
-
 import "./style.css";
 
 const PER_PAGE = 9;
@@ -18,23 +18,24 @@ const EventList = () => {
 
   useEffect(() => {
     if (!data?.events) return;
+
+    // Filtrer par type avant la pagination
     const filteredEventsAll = data.events.filter(
       (event) => !type || event.type === type
     );
-    console.log("Filtered Events:", filteredEventsAll);
 
     const paginatedEvents = filteredEventsAll.slice(
       (currentPage - 1) * PER_PAGE,
       currentPage * PER_PAGE
     );
+
     setFilteredEvents(paginatedEvents);
     setPageNumber(Math.ceil(filteredEventsAll.length / PER_PAGE));
   }, [data, type, currentPage]);
 
   const changeType = (evtType) => {
-    console.log("Selected Type:", evtType);
     setType(evtType || null);
-    setCurrentPage(1); // Reset to the first page when the type changes
+    setCurrentPage(1); // Réinitialiser à la première page lorsque le type change
   };
 
   const typeList = data?.events
@@ -47,10 +48,7 @@ const EventList = () => {
   return (
     <>
       <h3 className="SelectTitle">Catégories</h3>
-      <Select
-        selection={typeList}
-        onChange={(value) => changeType(value)}
-      />
+      <Select selection={typeList} onChange={(value) => changeType(value)} />
       <div id="events" className="ListContainer">
         {filteredEvents.map((event) => (
           <Modal key={event.id} Content={<ModalEvent event={event} />}>
@@ -67,16 +65,16 @@ const EventList = () => {
         ))}
       </div>
       <div className="Pagination">
-        {[...Array(pageNumber)].map((_, n) => (
+        {[...Array(pageNumber)].map((_, index) => (
           <a
-            key={`page-${n}`} // Fixed the unique key warning
+            key={`pagination-page-${index}`}
             href="#events"
             onClick={(e) => {
               e.preventDefault();
-              setCurrentPage(n + 1);
+              setCurrentPage(index + 1);
             }}
           >
-            {n + 1}
+            {index + 1}
           </a>
         ))}
       </div>
